@@ -1,0 +1,22 @@
+{
+  "name": "곰이 핀볼",
+  "short_name": "곰이 핀볼",
+  "id": "../",
+  "icons": [
+    {
+      "src": "mygomi-pinball-icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "../",
+  "scope": "../",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "display_override": [
+    "fullscreen",
+    "minimal-ui"
+  ],
+  "display": "standalone"
+}
