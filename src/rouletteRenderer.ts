@@ -1,5 +1,5 @@
 import type { Camera } from './camera';
-import { canvasHeight, canvasWidth, initialZoom, Themes, UI_FONT_FAMILY, winnerAreaHeight } from './data/constants';
+import { canvasHeight, canvasWidth, initialZoom, Themes, UI_FONT_FAMILY } from './data/constants';
 import type { StageDef } from './data/maps';
 import type { GameObject } from './gameObject';
 import type { Marble } from './marble';
@@ -26,7 +26,6 @@ export type RenderParameters = {
 };
 
 const MAX_DISPLAY_WIDTH = 1920;
-const WINNER_TEXT_OFFSET = 30;
 const PAW_SKIN_URLS = [
   new URL('../assets/paw-skins/paw-00.png', import.meta.url),
   new URL('../assets/paw-skins/paw-01.png', import.meta.url),
@@ -164,25 +163,47 @@ export class RouletteRenderer {
     this.ctx.textBaseline = 'top';
     this.ctx.font = `400 0.4pt ${UI_FONT_FAMILY}`;
     this.ctx.lineWidth = 3 / (renderParameters.camera.zoom + initialZoom);
+    let marbleTransform: DOMMatrix | null = null;
     renderParameters.camera.renderScene(this.ctx, () => {
       this.onBeforeEntities();
       this.renderEntities(renderParameters.entities);
       this.renderEffects(renderParameters);
-      this.renderMarbles(renderParameters);
+      marbleTransform = this.ctx.getTransform();
     });
     this.ctx.restore();
     this.onAfterScene();
 
-    uiObjects.forEach((obj) =>
-      obj.render(this.ctx, renderParameters, this._sceneCanvas.width, this._sceneCanvas.height)
-    );
-    renderParameters.particleManager.render(this.ctx);
-
+    // Keep the map at its cheaper scene resolution, but draw marbles directly
+    // on the display canvas so small paw details are never rasterized at half size.
     this._displayCtx.drawImage(this._sceneCanvas, 0, 0, this._canvas.width, this._canvas.height);
+    const displayScale = this._canvas.width / this._sceneCanvas.width;
+    if (marbleTransform) {
+      const transform: DOMMatrix = marbleTransform;
+      this._displayCtx.save();
+      this._displayCtx.setTransform(
+        transform.a * displayScale,
+        transform.b * displayScale,
+        transform.c * displayScale,
+        transform.d * displayScale,
+        transform.e * displayScale,
+        transform.f * displayScale
+      );
+      this.renderMarbles(renderParameters, this._displayCtx);
+      this._displayCtx.restore();
+    }
+
+    // UI and particles retain their scene-sized coordinates and stay above
+    // marbles in the same order as before the display-resolution pass.
+    this._displayCtx.save();
+    this._displayCtx.scale(displayScale, displayScale);
+    uiObjects.forEach((obj) =>
+      obj.render(this._displayCtx, renderParameters, this._sceneCanvas.width, this._sceneCanvas.height)
+    );
+    renderParameters.particleManager.render(this._displayCtx);
+    this._displayCtx.restore();
 
     // 당첨 UI는 저해상도 장면 캔버스를 거쳐 두 번 확대하지 않고 출력 캔버스에 바로 그린다.
-    const displayScale = this._canvas.width / this._sceneCanvas.width;
-    this.renderWinner(renderParameters, this._displayCtx, this._canvas.width, this._canvas.height, displayScale);
+    this.renderWinner(renderParameters, this._displayCtx, this._canvas.width, this._canvas.height);
   }
 
   private renderEntities(entities: MapEntityState[]) {
@@ -232,13 +253,13 @@ export class RouletteRenderer {
     effects.forEach((effect) => effect.render(this.ctx, camera.zoom * initialZoom, this._theme));
   }
 
-  private renderMarbles({ marbles, camera, winnerRank, winners, size, interpolation }: RenderParameters) {
+  private renderMarbles({ marbles, camera, winnerRank, winners, size, interpolation }: RenderParameters, ctx: CanvasRenderingContext2D) {
     const winnerIndex = winnerRank - winners.length;
 
     const viewPort = { x: camera.x, y: camera.y, w: size.x, h: size.y, zoom: camera.zoom * initialZoom };
     marbles.forEach((marble, i) => {
       marble.render(
-        this.ctx,
+        ctx,
         camera.zoom * initialZoom,
         i === winnerIndex,
         false,
@@ -254,19 +275,33 @@ export class RouletteRenderer {
     { winner, theme }: RenderParameters,
     ctx: CanvasRenderingContext2D,
     width: number,
-    height: number,
-    scale: number
+    height: number
   ) {
     if (!winner) return;
+    const canvasRect = this._canvas.getBoundingClientRect();
+    const timerRect = document.getElementById('resultTimerOverlay')?.getBoundingClientRect();
+    if (!timerRect || canvasRect.width <= 0) return;
+
+    const cssScale = width / canvasRect.width;
+    const settingsRect = document.getElementById('settings')?.getBoundingClientRect();
+    const settingsTop = settingsRect?.height ? settingsRect.top : canvasRect.bottom - 150;
+    const roomBelowTimer = (settingsTop - timerRect.bottom - 30) / 156;
+    const winnerScale = Math.max(1, Math.min(2, canvasRect.width / 960, roomBelowTimer));
+    const panelWidth = Math.min(timerRect.width * winnerScale * cssScale, width - 32 * cssScale);
+    const panelX = (timerRect.left + timerRect.width / 2 - canvasRect.left) * cssScale - panelWidth / 2;
+    const panelY = (timerRect.bottom - canvasRect.top + 14) * cssScale;
+    const panelHeight = Math.min(156 * winnerScale * cssScale, height - panelY - 16 * cssScale);
+    if (panelHeight < 72 * cssScale) return;
+
     ctx.save();
     ctx.fillStyle = theme.winnerBackground;
-    const scaledWinnerAreaHeight = winnerAreaHeight * scale;
-    ctx.fillRect(width / 2, height - scaledWinnerAreaHeight, width / 2, scaledWinnerAreaHeight);
+    ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
 
     const marbleImage = this.getMarbleImage(winner.name)?.winner;
-    const marbleSize = 100 * scale;
-    const marbleCenterX = width - marbleSize / 2 - 20 * scale;
-    const marbleCenterY = height - scaledWinnerAreaHeight / 2;
+    const marbleSize = Math.min(92 * winnerScale * cssScale, panelHeight * .54);
+    const marbleCenterX = panelX + panelWidth - 18 * winnerScale * cssScale - marbleSize / 2;
+    const nameCenterY = panelY + panelHeight * .7;
+    const marbleCenterY = nameCenterY;
 
     if (marbleImage) {
       ctx.imageSmoothingEnabled = true;
@@ -285,24 +320,47 @@ export class RouletteRenderer {
       ctx.fill();
     }
 
-    ctx.fillStyle = theme.winnerText;
+    const textWidth = panelWidth - marbleSize - 54 * winnerScale * cssScale;
+    const textCenterX = panelX + 18 * winnerScale * cssScale + textWidth / 2;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.strokeStyle = theme.winnerOutline;
-
-    ctx.font = `700 ${48 * scale}px ${UI_FONT_FAMILY}`;
-    ctx.textAlign = 'right';
-    ctx.lineWidth = 4 * scale;
-    const textRightX = marbleCenterX - marbleSize / 2 - 20 * scale;
+    ctx.lineWidth = 3 * winnerScale * cssScale;
+    ctx.font = `700 ${Math.min(42 * winnerScale * cssScale, panelHeight * .28)}px ${UI_FONT_FAMILY}`;
+    ctx.fillStyle = theme.winnerText;
     if (theme.winnerOutline) {
-      ctx.strokeText('Winner', textRightX, height - 120 * scale + WINNER_TEXT_OFFSET * scale);
+      ctx.strokeText('당첨', textCenterX, panelY + panelHeight * .28);
     }
+    ctx.fillText('당첨', textCenterX, panelY + panelHeight * .28);
 
-    ctx.fillText('Winner', textRightX, height - 120 * scale + WINNER_TEXT_OFFSET * scale);
-    ctx.font = `700 ${72 * scale}px ${UI_FONT_FAMILY}`;
+    const characters = Array.from(winner.name);
+    const maxNameSize = Math.min(58 * winnerScale * cssScale, panelHeight * .37);
+    const nameBlockHeight = panelHeight * .46;
+    let nameLines = [winner.name];
+    let nameSize = 0;
+    for (let lineCount = 1; lineCount <= Math.min(3, characters.length); lineCount++) {
+      const lines = Array.from({ length: lineCount }, (_, index) =>
+        characters.slice(Math.floor(index * characters.length / lineCount), Math.floor((index + 1) * characters.length / lineCount)).join('')
+      );
+      let candidateSize = Math.min(maxNameSize, nameBlockHeight / (lineCount * 1.08));
+      ctx.font = `700 ${candidateSize}px ${UI_FONT_FAMILY}`;
+      const widestLine = Math.max(...lines.map((line) => ctx.measureText(line).width));
+      candidateSize *= Math.min(1, textWidth / Math.max(1, widestLine));
+      if (candidateSize > nameSize) {
+        nameLines = lines;
+        nameSize = candidateSize;
+      }
+    }
+    ctx.font = `700 ${nameSize}px ${UI_FONT_FAMILY}`;
     ctx.fillStyle = `hsl(${winner.hue} 100% ${theme.marbleLightness})`;
-    if (theme.winnerOutline) {
-      ctx.strokeText(winner.name, textRightX, height - 55 * scale + WINNER_TEXT_OFFSET * scale);
-    }
-    ctx.fillText(winner.name, textRightX, height - 55 * scale + WINNER_TEXT_OFFSET * scale);
+    const lineHeight = nameSize * 1.08;
+    nameLines.forEach((line, index) => {
+      const lineY = nameCenterY + (index - (nameLines.length - 1) / 2) * lineHeight;
+      if (theme.winnerOutline) {
+        ctx.strokeText(line, textCenterX, lineY);
+      }
+      ctx.fillText(line, textCenterX, lineY);
+    });
     ctx.restore();
   }
 }
