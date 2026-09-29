@@ -34,15 +34,11 @@ const PAW_SKIN_URLS = [
   new URL('../assets/paw-skins/paw-05.png', import.meta.url),
   new URL('../assets/paw-skins/paw-06.png', import.meta.url),
   new URL('../assets/paw-skins/paw-07.png', import.meta.url),
-  new URL('../assets/paw-skins/paw-09.png', import.meta.url),
   new URL('../assets/paw-skins/paw-12.png', import.meta.url),
-  new URL('../assets/paw-skins/paw-13.png', import.meta.url),
   new URL('../assets/paw-skins/paw-14.png', import.meta.url),
   new URL('../assets/paw-skins/paw-15.png', import.meta.url),
   new URL('../assets/paw-skins/paw-18.png', import.meta.url),
-  new URL('../assets/paw-skins/paw-26.png', import.meta.url),
-  new URL('../assets/paw-skins/paw-28.png', import.meta.url),
-  new URL('../assets/paw-skins/paw-29.png', import.meta.url),
+  new URL('../assets/paw-skins/paw-cookie.png', import.meta.url),
 ];
 
 export class RouletteRenderer {
