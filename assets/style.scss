@@ -9,8 +9,8 @@
   --hair-ink: #432632;
   --hair-gold: #ffd176;
   --hair-gold-light: #ffe49b;
-  --hair-panel-gradient: linear-gradient(180deg, rgba(255, 157, 183, .86) 0%, rgba(255, 210, 222, .84) 48%, rgba(255, 248, 241, .86) 100%);
-  --hair-settings-gradient: var(--hair-panel-gradient);
+  --hair-panel-bg: rgba(255, 205, 218, .88);
+  --hair-panel-border: rgba(169, 64, 98, .72);
   --hair-button: #a94062;
   --hair-border-gradient: linear-gradient(135deg, rgba(255, 225, 231, .98) 0%, rgba(255, 143, 173, .96) 55%, rgba(255, 209, 118, .96) 100%);
 }
@@ -128,8 +128,8 @@ canvas {
   position: fixed;
   bottom: 1rem;
   left: 1rem;
-  background: var(--hair-settings-gradient) padding-box, var(--hair-border-gradient) border-box;
-  border: 2px solid transparent;
+  background: var(--hair-panel-bg);
+  border: 1px solid var(--hair-panel-border);
   border-radius: 12px;
   padding: 10px;
   color: var(--hair-ink);
@@ -178,9 +178,9 @@ canvas {
       display: flex;
       height: auto;
       padding: 10px;
-      border: 2px solid transparent;
+      border: 1px solid var(--hair-panel-border);
       border-radius: 12px;
-      background: var(--hair-settings-gradient) padding-box, var(--hair-border-gradient) border-box;
+      background: var(--hair-panel-bg);
       box-shadow: 0 8px 24px rgba(40, 10, 24, .5), 10px 10px 24px rgba(255, 143, 173, .16);
 
       .speed-group {
@@ -408,10 +408,10 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid transparent;
+  border: 1px solid var(--hair-panel-border);
   border-radius: 12px;
-  background: var(--hair-panel-gradient) padding-box, var(--hair-border-gradient) border-box;
-  box-shadow: -8px -6px 22px rgba(255, 111, 145, .28), 10px 12px 24px rgba(255, 209, 118, .18), inset 0 1px 0 rgba(255, 255, 255, .22);
+  background: var(--hair-panel-bg);
+  box-shadow: 0 10px 28px rgba(40, 10, 24, .48), 0 0 18px rgba(255, 143, 173, .16);
   color: var(--hair-ink);
 
   &.hidden {
