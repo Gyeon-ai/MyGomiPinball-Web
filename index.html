@@ -224,6 +224,23 @@
       getReady();
     });
 
+    // 종겜핀볼 Web(명단 수집 사이트)이 이 창을 열고 창 사이 전달(postMessage)로 보내는 명단을 받는다.
+    // 주소 뒤 ?names= 로 넘기면 명단이 길 때 주소가 너무 길어져 서버가 거절(414)하기 때문에 만든 통로다.
+    // 이 창을 연 창이 보낸 것만 받고, 받은 글자는 이름 칸에 넣는 데만 쓴다.
+    window.addEventListener('message', (e) => {
+      const data = e.data;
+      if (!window.opener || e.source !== window.opener) return;
+      if (!data || data.type !== 'pinball-names' || typeof data.names !== 'string') return;
+      if (data.names.length > 500000) return;
+      document.querySelector('#in_names').value = data.names.replace(/,/g, '\n');
+      getReady();
+    });
+    if (window.opener) {
+      try {
+        window.opener.postMessage({ type: 'pinball-ready' }, '*');
+      } catch (err) {}
+    }
+
     document.querySelector('#in_names').addEventListener('blur', () => {
       const nameSource = getNames();
       const nameSet = new Set();
