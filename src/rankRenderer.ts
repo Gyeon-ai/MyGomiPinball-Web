@@ -1,4 +1,4 @@
-import { UI_FONT_FAMILY } from './data/constants';
+import { DOT_INK, DOT_TEXT_SOFT, NAME_FONT_FAMILY, NUMBER_FONT_FAMILY } from './data/constants';
 import type { Marble } from './marble';
 import type { RenderParameters } from './rouletteRenderer';
 import type { Rect } from './types/rect.type';
@@ -78,8 +78,14 @@ export class RankRenderer implements UIObject {
     ctx.save();
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
-    ctx.font = `500 10pt ${UI_FONT_FAMILY}`;
-    ctx.fillStyle = '#ffe2e9';
+    // 글씨 뒤에 한 칸짜리 어두운 그림자를 둔다. 그림자 거리는 화면 확대율과 무관하므로 확대율만큼 곱한다.
+    const scale = typeof ctx.getTransform === 'function' ? ctx.getTransform().a : 1;
+    ctx.shadowColor = DOT_INK;
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = scale;
+    ctx.shadowOffsetY = scale;
+    ctx.font = `8px ${NUMBER_FONT_FAMILY}`;
+    ctx.fillStyle = DOT_TEXT_SOFT;
     ctx.fillText(`${winners.length} / ${winners.length + marbles.length}`, width - 5, 2);
 
     ctx.beginPath();
@@ -89,7 +95,7 @@ export class RankRenderer implements UIObject {
     ctx.clip();
 
     ctx.translate(0, -startY);
-    ctx.font = `700 11pt ${UI_FONT_FAMILY}`;
+    ctx.font = `700 12px ${NAME_FONT_FAMILY}`;
     if (theme.rankStroke) {
       ctx.lineWidth = 2;
       ctx.strokeStyle = theme.rankStroke;
@@ -112,7 +118,7 @@ export class RankRenderer implements UIObject {
         }
       }
     });
-    ctx.font = `500 10pt ${UI_FONT_FAMILY}`;
+    ctx.font = `400 12px ${NAME_FONT_FAMILY}`;
     marbles.forEach((marble: { hue: number; name: string }, rank: number) => {
       const y = (rank + winners.length) * this.fontHeight;
       if (y >= startY && y <= startY + height) {
