@@ -1,4 +1,4 @@
-import { Skills, STUCK_DELAY, Themes, UI_FONT_FAMILY } from './data/constants';
+import { NAME_FONT_FAMILY, Skills, STUCK_DELAY, Themes } from './data/constants';
 import type { IPhysics } from './IPhysics';
 import options from './options';
 import type { ColorTheme } from './types/ColorTheme';
@@ -208,7 +208,7 @@ export class Marble {
 
   private _drawName(ctx: CanvasRenderingContext2D, zoom: number, x: number, y: number) {
     transformGuard(ctx, () => {
-      ctx.font = `450 12pt ${UI_FONT_FAMILY}`;
+      ctx.font = `700 12pt ${NAME_FONT_FAMILY}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.strokeStyle = 'black';
