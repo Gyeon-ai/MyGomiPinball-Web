@@ -464,7 +464,8 @@ canvas {
       &.active {
         position: relative;
         background: var(--dot-accent);
-        border-color: var(--dot-accent);
+        // 고른 칸도 다른 칸과 같은 테두리를 둘러 칸 줄이 끊겨 보이지 않게 한다
+        border-color: var(--dot-line);
         color: var(--dot-bg);
       }
     }
