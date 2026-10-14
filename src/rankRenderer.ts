@@ -1,5 +1,6 @@
-import { DOT_INK, DOT_TEXT_SOFT, NAME_FONT_FAMILY, NUMBER_FONT_FAMILY } from './data/constants';
+import { DOT_TEXT_SOFT, NAME_FONT_FAMILY, NUMBER_FONT_FAMILY } from './data/constants';
 import type { Marble } from './marble';
+import { drawWinnerMark } from './winnerMark';
 import type { RenderParameters } from './rouletteRenderer';
 import type { Rect } from './types/rect.type';
 import type { MouseEventArgs, UIObject } from './UIObject';
@@ -78,18 +79,14 @@ export class RankRenderer implements UIObject {
     ctx.save();
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
-    // 글씨 뒤에 한 칸짜리 어두운 그림자를 둔다. 그림자 거리는 화면 확대율과 무관하므로 확대율만큼 곱한다.
-    const scale = typeof ctx.getTransform === 'function' ? ctx.getTransform().a : 1;
-    ctx.shadowColor = DOT_INK;
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = scale;
-    ctx.shadowOffsetY = scale;
+    // 글씨 그림자·외곽선 없이 깔끔하게(그림자 때문에 순위표가 떠 보인다는 의견, 2026-10-14)
     ctx.font = `8px ${NUMBER_FONT_FAMILY}`;
     ctx.fillStyle = DOT_TEXT_SOFT;
     ctx.fillText(`${winners.length} / ${winners.length + marbles.length}`, width - 5, 2);
 
     ctx.beginPath();
-    const rankTop = this.fontHeight + 10;
+    // 인원수 바로 아래에서 목록이 시작하게(사이가 떠 보인다는 의견으로 간격을 줄임)
+    const rankTop = 14;
     const rankWidth = Math.max(150, width * .5);
     ctx.rect(width - rankWidth, rankTop, rankWidth, height - rankTop);
     ctx.clip();
@@ -106,14 +103,12 @@ export class RankRenderer implements UIObject {
         ctx.fillStyle = `hsl(${marble.hue} 100% ${theme.marbleLightness}`;
         if (rank === winnerRank) {
           const text = `${visibleRankName(marble.name)} #${rank + 1}`;
-          ctx.strokeText(text, startX, rankTop + y);
           ctx.fillText(text, startX, rankTop + y);
-          const crownWidth = ctx.measureText('👑').width;
-          const crownX = startX - ctx.measureText(text).width - 3 - crownWidth / 2;
-          this.drawCrown(ctx, crownX, rankTop + y + this.fontHeight / 2);
+          const markSize = 12;
+          const markX = startX - ctx.measureText(text).width - 3 - markSize / 2;
+          drawWinnerMark(ctx, markX, rankTop + y + this.fontHeight / 2 - 1, markSize);
         } else {
           const text = `\u2714 ${visibleRankName(marble.name)} #${rank + 1}`;
-          ctx.strokeText(text, startX, rankTop + y);
           ctx.fillText(text, startX, rankTop + y);
         }
       }
@@ -124,20 +119,9 @@ export class RankRenderer implements UIObject {
       if (y >= startY && y <= startY + height) {
         ctx.fillStyle = `hsl(${marble.hue} 100% ${theme.marbleLightness}`;
         const text = `${visibleRankName(marble.name)} #${rank + 1 + winners.length}`;
-        ctx.strokeText(text, startX, rankTop + y);
         ctx.fillText(text, startX, rankTop + y);
       }
     });
-    ctx.restore();
-  }
-
-  private drawCrown(ctx: CanvasRenderingContext2D, centerX: number, centerY: number) {
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(-5 * Math.PI / 180);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('👑', 0, 0);
     ctx.restore();
   }
 
