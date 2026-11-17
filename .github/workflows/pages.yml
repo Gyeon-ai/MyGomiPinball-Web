@@ -33,6 +33,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 스트리머 그림은 저장소에 암호화(.png.enc)로만 있다. 비밀 값으로 풀고, 없거나 틀리면 여기서 멈춘다.
+      # 비밀 값은 GitHub가 로그에서 가린다. 스크립트도 값을 출력하지 않는다.
+      - name: Decrypt personacons
+        env:
+          PERSONACON_KEY: ${{ secrets.PERSONACON_KEY }}
+        run: node scripts/decrypt-personacons.mjs
+
       - name: Verify Box2D runtime
         run: |
           node --import ./scripts/register-typescript.mjs --test tests/*.test.mjs
