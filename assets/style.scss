@@ -98,10 +98,6 @@ canvas {
     mask-image: url('images/map.svg');
   }
 
-  &.trophy {
-    mask-image: url('images/trophy.svg');
-  }
-
 }
 
 // 이름표(왼쪽 위): 자리와 크기는 이전과 같고 모양만 도트
@@ -160,11 +156,6 @@ canvas {
   visibility: visible;
   opacity: 1;
   transition: visibility 0s, opacity 1s linear;
-
-  &.hide {
-    opacity: 0;
-    visibility: hidden;
-  }
 
   &.game-running {
     min-width: 0;
@@ -266,11 +257,6 @@ canvas {
       align-items: center;
       height: 36px;
 
-      .toggle-item {
-        width: 50%;
-        display: flex;
-        align-items: center;
-      }
     }
 
     div.row > select,
@@ -666,11 +652,6 @@ canvas {
       width: 100%;
     }
 
-    &.hide {
-      opacity: 0;
-      visibility: hidden;
-    }
-
     .collapsible-rows {
       margin-bottom: 8px;
     }
@@ -719,54 +700,4 @@ div.toast {
     opacity: 1;
     transform: translate(-50%, 0);
   }
-}
-
-.link_donation {
-  display: flex;
-  padding: 1em;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  background: repeating-linear-gradient(
-          45deg,
-          #ffaa00,
-          #ffaa00 20px,
-          #222222 20px,
-          #222222 40px
-  );
-  color: white;
-  font-size: 1.5em;
-  font-weight: 600;
-  border-radius: .5em;
-  margin-bottom: 1em;
-  text-decoration: none;
-  text-shadow: -2px 0px black, 0px 2px black, 2px 0px black, 0px -2px black;
-}
-
-
-.shop-button {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  padding: .2em .4em .4em .4em;
-  margin: 0 auto;
-  width: fit-content;
-
-  color: white;
-  font-size: 32px;
-  line-height: 48px;
-  font-weight: 600;
-  text-decoration: none;
-
-  img {
-    width: 48px;
-    height: 48px;
-    margin-right: .2em;
-    margin-bottom: -4px;
-  }
-
-  background-color: #0077ff;
-  border: 2px solid black;
-  border-radius: 10px;
 }

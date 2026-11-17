@@ -5,7 +5,6 @@ export const canvasWidth = 1600;
 export const canvasHeight = 900;
 export const zoomThreshold = 5;
 export const STUCK_DELAY = 5000;
-export const winnerAreaHeight = 168;
 export const PAW_BORDER = '#ffb3c5';
 export const PAW_NEON_CORAL = '#ff8cab';
 export const PAW_NEON_CREAM = '#ffe6c9';
@@ -31,18 +30,6 @@ export enum Skills {
   None,
   Impact,
 }
-
-export const DefaultEntityColor = {
-  box: PAW_NEON_CORAL,
-  circle: 'yellow',
-  polyline: 'white',
-} as const;
-
-export const DefaultBloomColor = {
-  box: PAW_NEON_CORAL,
-  circle: 'yellow',
-  polyline: PAW_NEON_CORAL,
-};
 
 export const Themes: Record<string, ColorTheme> = {
   light: {
